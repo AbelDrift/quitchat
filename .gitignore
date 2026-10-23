@@ -1,0 +1,34 @@
+# QuitChat – dit mag nooit in de repository.
+# Persoonlijke instellingen en alles uit de kluis staan buiten deze map
+# (~/.config/brug en /srv/brug), maar voor de zekerheid:
+
+# Instellingen en geheimen van muxbee, Synapse en de bridges
+settings.yaml
+homeserver.yaml
+registration.yaml
+config.yaml
+*.signing.key
+*.key
+*.pem
+
+# Persoonlijke QuitChat-instellingen
+adres
+matrix-client.json
+versies.conf
+
+# Kluis, databases, backups
+*.kluis
+*.db
+*.sqlite
+*.sqlite3
+*.tar.gz
+*.zip
+backup*/
+
+# SSH-sleutels
+id_*
+
+# Editor- en systeembestanden
+*~
+*.swp
+.DS_Store

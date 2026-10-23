@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Draait de geheimen-check vóór elke commit.
+# Eenmalig aanzetten in deze repository: git config core.hooksPath .githooks
+exec "$(git rev-parse --show-toplevel)/tools/geheimen-check.sh"
