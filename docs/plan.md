@@ -26,7 +26,11 @@ HTTPS. Een oude telefoon zonder simkaart houdt WhatsApp gekoppeld.
 
 ### Fase 2 – Meer koppelingen en privacy per kanaal
 
-- E-mailbrug (IMAP/SMTP), Telegram en andere bridges.
+- Telegram ✅ en andere chat-bridges (bijvoorbeeld Discord).
+- **E-mail blijft voorlopig buiten QuitChat.** E-mail werkt anders dan chatten
+  (lange berichten, bijlagen, mappen, filters) en daar is al een goede, vrije
+  oplossing voor: [Thunderbird](https://www.thunderbird.net). Later misschien
+  wel: een melding in QuitChat bij belangrijke mail.
 - Automatisch: WhatsApp zonder toegang tot contacten, geen Google Drive-backup.
 - Voorstellen: VPN voor de koppeltelefoon, privacy-instellingen per app.
 - **Privacy-kaart per kanaal:** wat Signal, WhatsApp, Messenger, Telegram en
