@@ -69,7 +69,8 @@ werkgeheugen en 20 GB vrije ruimte, die altijd aan staat.
 
 ## Bijdragen
 
-Ideeën, fouten en verbeteringen zijn welkom via de issues. Draai vóór je
+Ideeën, fouten en verbeteringen zijn welkom via de issues. Zoek je iets om
+mee te beginnen? Kijk bij [Te onderzoeken](docs/plan.md#te-onderzoeken--hulp-welkom). Draai vóór je
 eerste commit eenmalig:
 
 ```bash

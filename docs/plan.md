@@ -90,3 +90,21 @@ Waarschijnlijk gebaseerd op een bestaande open-source Matrix-app
 - Nepverkeer om patronen te verbergen: kans op blokkade van het account.
 - Extra versleuteling bovenop WhatsApp: onleesbaar voor ontvangers zonder
   QuitChat. Dan liever overstappen naar Signal of Matrix.
+
+## Te onderzoeken – hulp welkom
+
+Ideeën waar we (nog) geen tijd voor hadden, of waarvan nog niet duidelijk
+is of en hoe ze kunnen. Wil je helpen? Kies er een, open een issue en
+vertel wat je gaat uitzoeken.
+
+| Onderwerp | Wat is er bekend | Wat moet uitgezocht worden |
+| --- | --- | --- |
+| **Microsoft Teams (persoonlijk)** | Er is een experimentele community-bridge in Go (mautrix bridgev2) voor persoonlijke Teams (teams.live.com). Bewerken, verwijderen en threads werken nog niet. | Hoe stabiel is hij? Kan hij in muxbee/`brug` worden opgenomen? Werken meerdere accounts tegelijk? |
+| **Microsoft Teams (school/werk)** | De officiële Element-bridge is niet meer te koop en vroeg beheerdersrechten. mx-puppet-teams lijkt niet meer onderhouden. | Is er een werkende, eerlijke oplossing? Altijd alleen met toestemming van de organisatie. |
+| **Nieuwe Telegram-bridge** | Muxbee maakt instellingen voor de oude Python-bridge (v0.15.3, geen updates meer). De nieuwe Go-versie (v0.2604.0 en later) weigert die. | Instellingen voor de nieuwe bridge laten genereren (fork van muxbee) en overstappen zonder je koppeling kwijt te raken. |
+| **Serveradres in muxbee** | `brug` zet `public_baseurl` nu achteraf goed, omdat muxbee het steeds op `localhost` zet. | Een nette optie in muxbee zelf (fork), zodat het trucje niet meer nodig is. |
+| **Status op alle platforms** | WhatsApp-statusupdates lijken binnen te komen; Signal- en Telegram-stories waarschijnlijk niet. | Welke bridges kunnen een status of story versturen? Kan de info- of bio-tekst per platform worden aangepast? |
+| **Headscale i.p.v. Tailscale** | Tailscale werkt goed, maar ziet welke apparaten je hebt. Headscale is een zelf te hosten vervanger. | Handleiding of script om QuitChat met Headscale te gebruiken, ook voor HTTPS. |
+| **Raspberry Pi 4/5** | Het plan is ooit naar een zuinige Pi te verhuizen. | Alle scripts testen op Raspberry Pi OS (64-bit), en een verhuisstappenplan van pc naar Pi. |
+| **Muxbee-sessies** | Muxbee logt bij elke `brug up` in, waardoor er steeds nieuwe sessies bijkomen. | Hergebruik van één sessie, of automatisch opruimen. |
+| **E-mailmelding** | E-mail blijft bewust bij Thunderbird. | Eventueel een melding in QuitChat bij belangrijke mail, zonder de mail zelf te bridgen. |
