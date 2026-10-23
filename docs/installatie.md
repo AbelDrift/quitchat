@@ -131,6 +131,29 @@ Let op: staat WhatsApp op je gewone telefoon, dan verhuist het account naar
 de oude. Verwijder het daarna van je gewone telefoon. Heeft de oude telefoon
 ±14 dagen geen verbinding, dan koppelt WhatsApp de brug los.
 
+## Stap 6b – Telegram koppelen (optioneel)
+
+1. Vraag een gratis API-sleutel aan op https://my.telegram.org (inloggen met
+   je nummer; de code komt in de Telegram-app) → **API development tools** →
+   App title `QuitChat`, Short name `quitchat`, Platform **Desktop** →
+   **Create application**. Bewaar **api_id** en **api_hash** in je
+   wachtwoordbeheerder; de hash is geheim.
+2. Zet de bridge aan; muxbee vraagt om api_id en api_hash:
+
+   ```bash
+   brug bridge enable telegram
+   ```
+
+   Verkeerd ingevuld? `brug bridge disable telegram`, daarna opnieuw
+   `brug bridge enable telegram` en bij "Update them?" **y** typen.
+3. `brug up`, daarna in Element: chat met **@telegrambot:localhost** →
+   `login` → je nummer met landcode (`+316…`) → de code uit de Telegram-app
+   (en je wachtwoord als je verificatie in twee stappen hebt).
+
+Muxbee maakt instellingen voor de **oude** Telegram-bridge. Daarom staat
+Telegram vast op `v0.15.3` (zie `versies.conf`). Gewone Telegram-chats zijn
+niet end-to-end versleuteld, en geheime chats worden niet doorgegeven.
+
 ## Stap 7 – Toegang vanaf je telefoon (Tailscale)
 
 ```bash
@@ -225,6 +248,7 @@ in de kluis. Versleutelde backups komen in fase 4.
 | Element X: "Kon deze homeserver niet bereiken" | Tailscale op de telefoon aan? Test het adres in de browser; draai stap 7 |
 | Element X blijft op "Offline" na inloggen | Synapse gaf `localhost` als adres. Controleer `~/.config/brug/adres`, draai `brug up`, log in Element X uit en opnieuw in |
 | Element Web: "This device doesn't support encryption" bij je telefoon | Die telefoon synchroniseert niet; zie hierboven |
+| Telegram-bridge "stopped", logs: "Legacy bridge config detected" | Verkeerde (nieuwe) versie; zet in `~/.config/brug/versies.conf`: `telegram v0.15.3` en draai `brug up` |
 | `brug` zegt "De kluis is dicht" | `sudo ./kluis-open.sh` |
 
 ## Wat staat waar

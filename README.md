@@ -14,7 +14,7 @@ bij jou.
 
 ## Wat het doet
 
-- **Eén plek voor al je chats:** WhatsApp, Signal (en later e-mail, Telegram
+- **Eén plek voor al je chats:** WhatsApp, Signal, Telegram (en later e-mail
   en meer) in één app, via [Matrix](https://matrix.org).
 - **Jouw server, jouw data:** alles draait op een eigen pc of Raspberry Pi.
   Berichten worden pas daar ontsleuteld, nooit bij een tussenpartij.
@@ -30,7 +30,7 @@ bij jou.
 | Fase | Wat | Status |
 | --- | --- | --- |
 | 1 | Thuis-server: kluis, Matrix, bridges, toegang via Tailscale | ✅ Werkt |
-| 2 | Meer koppelingen: e-mail, Telegram, privacy-instellingen per kanaal | Gepland |
+| 2 | Meer koppelingen: Telegram ✅, e-mail, privacy-instellingen per kanaal | Bezig |
 | 3 | Burner: kluis openen via je telefoon, wissen op afstand en bij diefstal | Gepland |
 | 4 | Versleutelde backups (per X MB of X berichten) naar je eigen cloud | Gepland |
 | 5 | Eigen app: één contact per persoon, kanaal kiezen per antwoord, privacy-kaart | Gepland |

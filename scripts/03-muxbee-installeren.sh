@@ -50,6 +50,9 @@ if [[ ! -f "$CONF/versies.conf" ]]; then
 # Formaat: <naam> <versie>
 signal   v26.10
 whatsapp v26.10
+# Telegram: muxbee maakt instellingen voor de oude (Python-)bridge, dus de
+# laatste oude versie. Nieuwe Telegram-versies heten v0.2610.0 enz.
+telegram v0.15.3
 CONF
 else
   echo "    $CONF/versies.conf bestaat al; niet aangepast."
@@ -135,6 +138,13 @@ case "${1:-}" in
   ""|tui|up|init|bridge|restore)
     rechten_zetten
     [[ "${1:-}" == "init" ]] || versies_vastzetten
+    # Aan- of uitzetten van een bridge herstart Synapse met http://localhost:8008;
+    # zet daarna het echte adres weer goed.
+    if [[ "${1:-}" == "bridge" && ( "${2:-}" == "enable" || "${2:-}" == "disable" ) ]]; then
+      "$MUXBEE" "$@"
+      adres_zetten
+      exit 0
+    fi
     # "up --pull" zou testversies ophalen; daarom zonder --pull.
     if [[ "${1:-}" == "up" ]]; then
       shift

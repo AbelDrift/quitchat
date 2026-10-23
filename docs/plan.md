@@ -63,6 +63,19 @@ Waarschijnlijk gebaseerd op een bestaande open-source Matrix-app
 (bijvoorbeeld FluffyChat), uitgebreid met:
 
 - **Eén persoon = één contact:** alle kanalen van iemand in één tijdlijn.
+  Automatisch samenvoegen op telefoonnummer (vaak gelijk bij WhatsApp,
+  Signal en Telegram); handmatig samenvoegen of splitsen als de app het mis
+  heeft. Een klein icoon per bericht laat zien via welk kanaal het kwam.
+- **Groepen bundelen:** groepen blijven per platform (de leden verschillen
+  bijna altijd), maar je kunt ze zelf bundelen en labelen, bijvoorbeeld
+  "Familie" met de WhatsApp- én de Signal-groep erin.
+- **Eén status voor alle platforms:** één knop "status plaatsen" die de
+  status zet op elk platform waar de bridge dat ondersteunt. Voor de rest
+  laat de app zien waar het niet lukte, met een snelkoppeling om het daar
+  zelf te doen, en per platform wie de status kan zien. Nog uit te zoeken:
+  welke bridges statusupdates en stories kunnen versturen (WhatsApp lijkt
+  ze wel te kunnen ontvangen; Signal- en Telegram-stories waarschijnlijk
+  niet), en of de info- of bio-tekst per platform aan te passen is.
 - **Kanaal kiezen per antwoord**, of een vaste regel per contact.
 - **Privévoorkeur per contact:** stelt het meest privévriendelijke kanaal voor.
 - **Burner-knop** en **opstart-goedkeuring** voor de kluis.
