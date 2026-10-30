@@ -20,10 +20,30 @@ apt-get install -y ca-certificates curl gnupg cryptsetup zram-tools acl
 
 echo "==> Docker installeren (officiële bron van Docker)"
 install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+# Herken Debian, Ubuntu of Mint. Docker heeft een eigen pakketbron per distro.
+# Mint gebruikt Ubuntu's bron (UBUNTU_CODENAME = "jammy" enz.);
+# Debian gebruikt die van Debian ("bookworm" enz.).
+. /etc/os-release
+case "${ID:-}" in
+  debian)
+    DOCKER_DISTRO=debian
+    CODENAAM="$VERSION_CODENAME"
+    ;;
+  ubuntu|linuxmint|neon|pop|elementary|zorin)
+    DOCKER_DISTRO=ubuntu
+    CODENAAM="${UBUNTU_CODENAME:-$VERSION_CODENAME}"
+    ;;
+  *)
+    # Val terug op ID_LIKE voor onbekende afgeleiden
+    case "${ID_LIKE:-}" in
+      *debian*|*ubuntu*) DOCKER_DISTRO=debian; CODENAAM="$VERSION_CODENAME" ;;
+      *) echo "Onbekende distro: ${ID:-?}. Draai dit script op Debian, Ubuntu of Mint."; exit 1 ;;
+    esac
+    ;;
+esac
+curl -fsSL "https://download.docker.com/linux/${DOCKER_DISTRO}/gpg" -o /etc/apt/keyrings/docker.asc
 chmod a+r /etc/apt/keyrings/docker.asc
-CODENAAM="$(. /etc/os-release && echo "$VERSION_CODENAME")"
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${CODENAAM} stable" \
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${DOCKER_DISTRO} ${CODENAAM} stable" \
   > /etc/apt/sources.list.d/docker.list
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
