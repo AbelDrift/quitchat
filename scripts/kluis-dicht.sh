@@ -3,6 +3,7 @@
 # Gebruik: sudo ./kluis-dicht.sh
 set -euo pipefail
 
+KLUIS=/srv/brug.kluis
 NAAM=brug
 MAP=/srv/brug
 
@@ -23,4 +24,10 @@ fi
 if [[ -e "/dev/mapper/$NAAM" ]]; then
   cryptsetup close "$NAAM"
 fi
+# Zet kluis-open.sh de loop zelf op (vanaf de udisks-fix), ruim die dan ook
+# zelf op. Oudere kluizen gebruiken de loop-device die cryptsetup intern
+# aanmaakte; dan vindt losetup -j hem niet en gebeurt hier niets.
+for LOOP in $(losetup -j "$KLUIS" -O NAME --noheadings 2>/dev/null); do
+  losetup -d "$LOOP" 2>/dev/null || true
+done
 echo "De kluis is dicht."
