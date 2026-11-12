@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Pusht na elke commit automatisch naar Codeberg (origin) en GitHub.
+# Draait op de achtergrond, zodat committen niet wacht op het netwerk.
+# Uitzetten voor één commit:  QUITCHAT_GEEN_PUSH=1 git commit ...
+# Resultaat staat in .git/auto-push.log
+set -uo pipefail
+
+[[ -n "${QUITCHAT_GEEN_PUSH:-}" ]] && exit 0
+
+TAK="$(git symbolic-ref --quiet --short HEAD)" || exit 0   # geen tak (rebase e.d.)
+LOG="$(git rev-parse --git-dir)/auto-push.log"
+
+(
+  for remote in origin github; do
+    git remote get-url "$remote" >/dev/null 2>&1 || continue
+    if timeout 60 git push --quiet "$remote" "$TAK" 2>&1; then
+      echo "[$(date '+%F %T')] $TAK -> $remote: gelukt"
+    else
+      echo "[$(date '+%F %T')] $TAK -> $remote: MISLUKT (later: git push $remote $TAK)"
+    fi
+  done >>"$LOG" 2>&1
+) </dev/null >/dev/null 2>&1 &
+disown
+exit 0

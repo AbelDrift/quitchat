@@ -10,6 +10,9 @@
 #
 # Wordt automatisch uitgevoerd vóór elke commit als je eenmalig draait:
 #   git config core.hooksPath .githooks
+#
+# Vals alarm op een regel waar zeker geen geheim staat? Zet aan het eind van
+# die regel het commentaar:  geheimen-check: ok
 set -euo pipefail
 
 ZELF="tools/geheimen-check.sh"
@@ -49,7 +52,7 @@ for f in "${BESTANDEN[@]}"; do
   for p in "${PATRONEN[@]}"; do
     uitleg="${p%%|*}"
     regex="${p#*|}"
-    if treffers="$(printf '%s\n' "$inhoud" | grep -nE -- "$regex" | head -n 3)"; then
+    if treffers="$(printf '%s\n' "$inhoud" | grep -nE -- "$regex" | grep -v 'geheimen-check: ok' | head -n 3)"; then
       [[ -n "$treffers" ]] || continue
       echo "STOP  $f: mogelijk een $uitleg"
       printf '%s\n' "$treffers" | cut -c1-120 | sed 's/^/        regel /'

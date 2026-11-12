@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuitChat Burner</title>
+<style>
+  :root {
+    --fg:#eee; --bg:#111; --card:#1a1a1a; --rand:#333;
+    --ok:#1b8a4e; --fout:#b8322d; --accent:#4a9eff; --warn:#d4a24c;
+  }
+  * { box-sizing: border-box }
+  html, body { background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; margin: 0 }
+  body { max-width: 540px; margin: 0 auto; padding: 1rem }
+  h1 { font-size: 1.5rem; margin: .5rem 0 1rem }
+  .card { background: var(--card); border: 1px solid var(--rand); border-radius: 8px; padding: 1rem; margin: .75rem 0 }
+  .card h2 { font-size: 1.1rem; margin: 0 0 .5rem }
+  .status { display: flex; align-items: center; gap: .75rem; font-weight: 600 }
+  .status .punt { width: 14px; height: 14px; border-radius: 50% }
+  .punt.open { background: var(--ok) }
+  .punt.dicht { background: var(--warn) }
+  .punt.scherp { background: var(--fout) }
+  label { display: block; font-size: .9rem; margin: .5rem 0 .25rem }
+  input, button { font: inherit; padding: .75rem; border-radius: 6px; border: 1px solid var(--rand);
+                  background: #0e0e0e; color: var(--fg); width: 100%; }
+  input[type="password"], input[type="text"], input[type="number"] { -webkit-appearance: none }
+  button { background: var(--accent); border: none; color: #fff; font-weight: 600; cursor: pointer; margin-top: .5rem }
+  button.danger { background: var(--fout) }
+  button.ghost { background: transparent; border: 1px solid var(--rand); color: var(--fg) }
+  .flash { padding: .75rem; border-radius: 6px; margin: .5rem 0 }
+  .flash.ok { background: #1b3a2b; border: 1px solid var(--ok) }
+  .flash.fout { background: #3a1b1b; border: 1px solid var(--fout) }
+  .muted { color: #999; font-size: .85rem; margin-top: .25rem }
+  details { margin-top: .5rem }
+  summary { cursor: pointer; padding: .25rem 0; color: var(--accent) }
+</style>
+</head>
+<body>
+
+<h1>QuitChat Burner</h1>
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div class="flash {{ cat }}">{{ msg }}</div>
+  {% endfor %}
+{% endwith %}
+
+<div class="card">
+  <h2>Status</h2>
+  <div class="status">
+    <span class="punt {% if open %}open{% else %}dicht{% endif %}"></span>
+    {% if open %}Kluis is open — server draait{% else %}Kluis is dicht{% endif %}
+  </div>
+  <div class="muted">
+    Grace-tijd bij opstart: <strong>{{ grace }} minuten</strong><br>
+    Scherp:
+    {% if scherp %}
+      <strong style="color: var(--fout)">AAN</strong> — volgende herstart = directe burn
+    {% else %}
+      uit
+    {% endif %}
+  </div>
+</div>
+
+{% if not open %}
+<div class="card">
+  <h2>Kluis openen</h2>
+  <form method="post" action="{{ url_for('open_kluis') }}" autocomplete="off">
+    <label>Burner-PIN
+      <input type="password" name="pin" inputmode="numeric" required autocomplete="off">
+    </label>
+    <label>Kluis-wachtwoord
+      <input type="password" name="wachtwoord" required autocomplete="off">
+    </label>
+    <button type="submit">Open kluis</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Grace-tijd aanpassen</h2>
+  <form method="post" action="{{ url_for('set_grace') }}">
+    <label>Minuten (0 = direct burn bij opstart)
+      <input type="number" name="minuten" min="0" max="1440" value="{{ grace }}" required>
+    </label>
+    <label>Burner-PIN
+      <input type="password" name="pin" inputmode="numeric" required autocomplete="off">
+    </label>
+    <button type="submit" class="ghost">Opslaan</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Scherp zetten</h2>
+  <p class="muted">Zet aan vóór je op pad gaat. Volgende herstart wordt dan meteen een burn, ongeacht de grace-tijd.</p>
+  <form method="post" action="{{ url_for('toggle_scherp') }}">
+    <label>Burner-PIN
+      <input type="password" name="pin" inputmode="numeric" required autocomplete="off">
+    </label>
+    {% if scherp %}
+      <input type="hidden" name="actie" value="uit">
+      <button type="submit" class="ghost">Scherp uitzetten</button>
+    {% else %}
+      <input type="hidden" name="actie" value="aan">
+      <button type="submit" class="danger">Scherp zetten</button>
+    {% endif %}
+  </form>
+</div>
+
+<details>
+<summary>Burn nu uitvoeren (klik voor het formulier)</summary>
+<div class="card" style="border-color: var(--fout)">
+  <h2 style="color: var(--fout)">Burn nu</h2>
+  <p class="muted">
+    Vernietigt alle LUKS-sleutels. Alleen een <strong>versleutelde backup + papieren backup-herstelcode</strong> kan je berichten dan nog redden.
+  </p>
+  <form method="post" action="{{ url_for('burn') }}" autocomplete="off">
+    <label>Typ exact <strong>BURN</strong> om te bevestigen
+      <input type="text" name="bevestiging" required autocomplete="off">
+    </label>
+    <label>Burner-PIN
+      <input type="password" name="pin" inputmode="numeric" required autocomplete="off">
+    </label>
+    <button type="submit" class="danger">BURN NU</button>
+  </form>
+</div>
+</details>
+
+</body>
+</html>
