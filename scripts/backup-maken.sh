@@ -52,17 +52,26 @@ else
 fi
 
 # 2. Configuratie en data kopiëren.
-# Postgres' eigen datamap slaan we over: die mag abel niet lezen en we hebben
-# de pg_dumpall-SQL al bij 1. We nemen muxbee en brug mee (synapse, bridges,
-# instellingen, backup-sleutels).
+# Postgres' eigen datamap slaan we over: we hebben de pg_dumpall-SQL al bij 1.
+# We nemen muxbee en brug mee (synapse, bridges, instellingen, backup-sleutels).
+#
+# Lezen gebeurt als root in een wegwerp-container: de mautrix-bridges zetten
+# hun config.yaml bij elke herstart op 0600 (eigenaar 1337). Daardoor valt de
+# ACL voor abel weg en faalde tar als abel sinds 8 nov elke nacht.
+# We gebruiken het postgres-image omdat dat toch al lokaal staat.
 log "  bestanden kopiëren"
 mkdir -p "$WERK/bestanden"
-tar -C "$MAP" \
-    --exclude='data/muxbee/postgres' \
-    --exclude='config/muxbee/postgres' \
-    --exclude='backups' \
-    -cf - config data 2>&1 \
-  | tar -C "$WERK/bestanden" -xf -
+LEES_IMAGE="${BACKUP_LEES_IMAGE:-postgres:17}"
+if ! docker run --rm --network none -v "$MAP:/bron:ro" "$LEES_IMAGE" \
+      tar -C /bron \
+        --exclude='data/muxbee/postgres' \
+        --exclude='config/muxbee/postgres' \
+        --exclude='backups' \
+        -cf - config data 2>>"$LOG" \
+    | tar -C "$WERK/bestanden" --no-same-owner -xf -; then
+  log "FOUT: bestanden kopiëren mislukt (zie meldingen hierboven in $LOG)"
+  exit 1
+fi
 
 # 3. Alles inpakken en versleutelen (age -R public.txt)
 log "  inpakken en versleutelen"
