@@ -50,9 +50,12 @@ if [[ ! -f "$CONF/versies.conf" ]]; then
 # Formaat: <naam> <versie>
 signal   v26.10
 whatsapp v26.10
-# Telegram: muxbee maakt instellingen voor de oude (Python-)bridge, dus de
-# laatste oude versie. Nieuwe Telegram-versies heten v0.2610.0 enz.
-telegram v0.15.3
+# Telegram: de nieuwe Go-bridge. Muxbee maakt nog instellingen voor de oude
+# Python-bridge (v0.15.3); die kan niet meer inloggen. Draai na
+# "brug bridge enable telegram" daarom ./07-bridges-afstellen.sh, dat zet de
+# instellingen om naar het nieuwe formaat.
+telegram v26.10
+discord  v0.7.7
 CONF
 else
   echo "    $CONF/versies.conf bestaat al; niet aangepast."

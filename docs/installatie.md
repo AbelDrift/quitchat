@@ -75,8 +75,15 @@ brug init
 brug bridge enable signal
 brug bridge enable whatsapp
 brug up
+./07-bridges-afstellen.sh # meer geschiedenis per chat (zie hieronder)
 brug open                 # opent Element Web op http://localhost:8080
 ```
+
+**Waarom `07-bridges-afstellen.sh`?** Synapse kan achteraf geen oudere
+berichten in een chat invoegen (dat kan alleen Beeper). Hoeveel geschiedenis
+je krijgt, wordt bepaald op het moment dat een chat wordt aangemaakt, dus bij
+het koppelen. Muxbee zet dat op 50 berichten; het script zet WhatsApp op
+10.000 en Telegram op 2.000. Draai het dus **vóór** je koppelt.
 
 De eerste `brug up` duurt een paar minuten (ongeveer 1 GB downloaden).
 Aan het eind zie je de gebruikersnaam (`admin`) en het wachtwoord van je
@@ -146,13 +153,28 @@ de oude. Verwijder het daarna van je gewone telefoon. Heeft de oude telefoon
 
    Verkeerd ingevuld? `brug bridge disable telegram`, daarna opnieuw
    `brug bridge enable telegram` en bij "Update them?" **y** typen.
-3. `brug up`, daarna in Element: chat met **@telegrambot:localhost** →
-   `login` → je nummer met landcode (`+316…`) → de code uit de Telegram-app
-   (en je wachtwoord als je verificatie in twee stappen hebt).
+3. Zet de instellingen om naar de nieuwe bridge en start hem:
 
-Muxbee maakt instellingen voor de **oude** Telegram-bridge. Daarom staat
-Telegram vast op `v0.15.3` (zie `versies.conf`). Gewone Telegram-chats zijn
-niet end-to-end versleuteld, en geheime chats worden niet doorgegeven.
+   ```bash
+   brug up
+   ./07-bridges-afstellen.sh
+   ```
+
+   Muxbee maakt instellingen voor de **oude** Python-bridge (v0.15.3). Die
+   kan niet meer inloggen: Telegram weigert de oude verbinding ("Connection
+   not initialized"). De nieuwe Go-bridge (`telegram v26.10` in
+   `versies.conf`) zet die oude instellingen niet zelf om; het script doet
+   dat wel en neemt je api_id, api_hash en rechten over.
+4. Start in Element een **nieuw** gesprek met **@telegrambot:localhost** en
+   typ `login qr`. Scan de code in Telegram: Instellingen → Apparaten →
+   **Desktop-apparaat koppelen**. (In een ouder gesprek met de bot werkt het
+   alleen met `!tg` ervoor: `!tg login qr`.) Inloggen met je nummer kan ook:
+   `login phone`.
+
+Draai `./07-bridges-afstellen.sh` opnieuw na elke `brug bridge enable
+telegram`. Gewone Telegram-chats zijn niet end-to-end versleuteld, en geheime
+chats worden niet doorgegeven. Bij het koppelen komen alleen chats mee die in
+je gewone chatlijst staan (niet uit het archief).
 
 ## Stap 7 – Toegang vanaf je telefoon (Tailscale)
 
@@ -248,7 +270,11 @@ in de kluis. Versleutelde backups komen in fase 4.
 | Element X: "Kon deze homeserver niet bereiken" | Tailscale op de telefoon aan? Test het adres in de browser; draai stap 7 |
 | Element X blijft op "Offline" na inloggen | Synapse gaf `localhost` als adres. Controleer `~/.config/brug/adres`, draai `brug up`, log in Element X uit en opnieuw in |
 | Element Web: "This device doesn't support encryption" bij je telefoon | Die telefoon synchroniseert niet; zie hierboven |
-| Telegram-bridge "stopped", logs: "Legacy bridge config detected" | Verkeerde (nieuwe) versie; zet in `~/.config/brug/versies.conf`: `telegram v0.15.3` en draai `brug up` |
+| Telegram-bridge herstart steeds, logs: "Legacy bridge config detected" | Muxbee heeft weer een config voor de oude bridge geschreven. Draai `./07-bridges-afstellen.sh` |
+| Telegram-bot: "Unhandled exception while requesting code", logs: `ConnectionNotInitedError` | Je draait nog de oude bridge (v0.15.3). Zet `telegram v26.10` in `versies.conf`, draai `brug up` en `./07-bridges-afstellen.sh` |
+| Bot reageert niet (alleen met `!tg`/`!wa` ervoor) | Het gesprek is geen beheerkamer meer (bijv. na een lege bridge-database). Begin een nieuw gesprek met de bot |
+| Chats na een database-incident leeg, bridge-logs: "Could not find room_version" | De bridge verwijst naar rooms die Synapse niet meer kent. Bridge stoppen, zijn database opzij zetten, opnieuw koppelen |
+| Bot aanmaken mislukt, Synapse-logs: `duplicate key ... profiles_user_id_key` | Los profiel van de bot zonder gebruiker. Verwijder die ene rij uit `profiles` en start de bridge opnieuw |
 | `brug` zegt "De kluis is dicht" | `sudo ./kluis-open.sh` |
 
 ## Wat staat waar
