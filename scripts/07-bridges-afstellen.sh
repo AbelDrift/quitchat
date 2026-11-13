@@ -102,9 +102,11 @@ w = {k: waarde(k) for k in ['as_token', 'hs_token', 'api_id', 'api_hash', 'domai
 hs_adres = re.search(r'(?m)^homeserver:\n(?:\s+#.*\n|\s*\n)*\s+address:\s*(\S+)', o).group(1)
 as_adres = re.search(r'(?m)^appservice:\n(?:\s+#.*\n|\s*\n)*\s+address:\s*(\S+)', o).group(1)
 # Rechten: oude namen omzetten (relaybot -> relay; full/puppeting -> user).
-perm = re.search(r'(?m)^    permissions:\n((?:        .*\n)+)', o)
+# Rechten uit bridge.permissions halen, ongeacht de inspringing (muxbee
+# gebruikt 2/4 spaties, een volledige oude config 4/8).
+perm = re.search(r'(?m)^( +)permissions:\n((?:\1 +.*\n)+)', o)
 regels = []
-for sleutel, rol in re.findall(r'(?m)^        ["\']?([^"\':]+(?::[^"\':]+)?)["\']?:\s*(\w+)\s*$', perm.group(1) if perm else ''):
+for sleutel, rol in re.findall(r'(?m)^ +["\']?([^"\':]+(?::[^"\':]+)?)["\']?:\s*(\w+)\s*$', perm.group(2) if perm else ''):
     rol = {'relaybot': 'relay', 'full': 'user', 'puppeting': 'user'}.get(rol, rol)
     regels.append(f'        "{sleutel}": {rol}\n')
 if not any(r.endswith('admin\n') for r in regels):
@@ -133,6 +135,16 @@ PY
 
 veranderd() { echo "  $1: $2"; }
 
+# Is dit een database van de Go-bridge (heeft de tabel user_login)?
+is_go_database() {
+  python3 -I - "$1" <<'PY' 2>/dev/null
+import sqlite3, sys
+c = sqlite3.connect("file:" + sys.argv[1] + "?mode=ro", uri=True)
+rij = c.execute("select 1 from sqlite_master where name = 'user_login'").fetchone()
+sys.exit(0 if rij else 1)
+PY
+}
+
 # ---- WhatsApp ---------------------------------------------------------------
 if [[ -f "$BRIDGES/whatsapp/registration.yaml" ]]; then
   echo "==> WhatsApp"
@@ -157,7 +169,10 @@ if [[ -f "$BRIDGES/telegram/registration.yaml" ]]; then
       kopie="$KOPIE_MAP/telegram-config-oud-$(date +%Y%m%d-%H%M%S).yaml"
       cp "$WERK/tg.yaml" "$kopie"; chmod 600 "$kopie"
       echo "    kopie van de oude config: $kopie"
-      if [[ -s "$BRIDGES/telegram/mautrix-telegram.db" ]]; then
+      # Alleen een database van de oude Python-bridge opzij zetten. Een database
+      # van de Go-bridge blijft staan: daarin zit je koppeling. (muxbee schrijft
+      # bij elke "brug up" weer een oude config, ook als de Go-bridge al draait.)
+      if [[ -s "$BRIDGES/telegram/mautrix-telegram.db" ]] && ! is_go_database "$BRIDGES/telegram/mautrix-telegram.db"; then
         echo "    LET OP: er staat een database van de oude bridge. De Go-bridge zet die"
         echo "    niet betrouwbaar om; hij gaat opzij. Log daarna opnieuw in bij Telegram."
         docker run --rm -v "$BRIDGES/telegram:/data" --entrypoint sh "$(image_van telegram)" \
