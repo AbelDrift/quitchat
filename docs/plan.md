@@ -61,7 +61,7 @@ een seconde, ook op SD-kaarten en SSD's).
 - **Backup-burner:** wist backups in de eigen cloud en vernietigt de
   backup-sleutel.
 
-### Fase 5 – Eigen app (QChat)
+### Fase 5 – Eigen app
 
 Gebaseerd op een fork van FluffyChat (besloten 13 nov 2026). Uitgewerkt in
 [fase5-app.md](fase5-app.md). Uitgebreid met:

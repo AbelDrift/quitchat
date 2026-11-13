@@ -1,4 +1,4 @@
-# Fase 5 – De eigen app (QChat)
+# Fase 5 – De eigen app
 
 Element X werkt, maar toont kanalen en niet mensen. De eigen app laat zien
 wat Element nooit gaat doen: één contact per persoon, per antwoord kiezen
@@ -6,13 +6,15 @@ via welk kanaal, en de burner en backups op je telefoon.
 
 ## Naam
 
-- **QuitChat** blijft de naam van het project, de repo en de app in de
-  winkel (F-Droid).
-- **QChat** is de korte naam: onder het icoon op je telefoon, in het logo,
-  en in de gewone omgangstaal.
-- Let op: "QChat" en "Q-Chat" worden ook gebruikt door anderen (onder meer
-  een oude push-to-talk-dienst van Qualcomm en een AI-chat van Quizlet).
-  Daarom niet "QChat" als officiële appnaam, wel als korte naam.
+**QuitChat**, overal: in de app, in F-Droid, in de code en in de
+documentatie. Technisch altijd `quitchat` (pakketnaam
+`org.codeberg.abeldrift.quitchat`, broncode in `~/AllChat/quitchat-app`).
+
+Besloten 13 nov 2026: géén "QChat". Die naam is al in gebruik (onder meer
+een push-to-talk-dienst van Qualcomm en Q-Chat van Quizlet), en twee namen
+door elkaar geeft verwarring in code en documentatie. Een kortere tekst
+onder het icoon kan later altijd nog als label (één regel), maar dan niet
+"QChat".
 
 ## Basis: een fork van FluffyChat
 
@@ -50,7 +52,7 @@ hoe de installatie daar gaat.
 - Samenvoegen mag het **adresboek van de telefoon** gebruiken (met
   toestemming), naast wat de bridges weten.
 - **Contact worden zonder telefoonnummer of ander chat-account:** twee
-  QChat-gebruikers koppelen elkaar door een **QR-code** te scannen, zoals bij
+  QuitChat-gebruikers koppelen elkaar door een **QR-code** te scannen, zoals bij
   Session. Een nummer is dus niet nodig om iemands contact te worden.
   - Binnen één QuitChat-server werkt dat direct (de QR-code bevat het
     Matrix-adres).
@@ -63,7 +65,7 @@ hoe de installatie daar gaat.
     verbinding, maar een netwerk van onafhankelijke servers dat berichten
     versleuteld en via omwegen (onion routing) doorgeeft en tijdelijk bewaart,
     zodat ze ook aankomen als de ander offline is.
-  - **Voorstel:** QChat spreekt het Session-netwerk zelf. Een QR-contact is
+  - **Voorstel:** QuitChat spreekt het Session-netwerk zelf. Een QR-contact is
     dan een Session-contact, en je kunt ook chatten met mensen die alleen de
     Session-app hebben. Dat lost meteen het ontbreken van een Session-bridge
     op. **Uitzoeken:** kan de bibliotheek van Session (`libsession`) vanuit
