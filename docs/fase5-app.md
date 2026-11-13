@@ -36,6 +36,64 @@ kanaal per contact en dergelijke bewaart de app als Matrix *account data*
 Synapse, gaat mee in de versleutelde backups en is automatisch op al je
 apparaten gelijk.
 
+## Apparaten
+
+Eerst de **Fairphone** (Android zonder Google) en de **thuis-pc** (Linux).
+Dat is dezelfde app: Flutter bouwt uit één codebase een Android- en een
+Linux-versie. Andere telefoons en tablets volgen later; dan testen we ook
+hoe de installatie daar gaat.
+
+## Wensen van Abel (13 nov 2026)
+
+### Contacten
+
+- Samenvoegen mag het **adresboek van de telefoon** gebruiken (met
+  toestemming), naast wat de bridges weten.
+- **Contact worden zonder telefoonnummer of ander chat-account:** twee
+  QChat-gebruikers koppelen elkaar door een **QR-code** te scannen, zoals bij
+  Session. Een nummer is dus niet nodig om iemands contact te worden.
+  - Binnen één QuitChat-server werkt dat direct (de QR-code bevat het
+    Matrix-adres).
+  - Tussen verschillende QuitChat-servers zou Matrix federatie nodig hebben,
+    en dus een echte domeinnaam. De huidige server heet `localhost`, en die
+    naam kan in Synapse niet achteraf veranderen.
+  - **Gekozen richting (13 nov 2026): zoals Session.** Geen nummer, geen
+    account, geen eigen server nodig; je wisselt een ID uit via een QR-code.
+    Let op: Session is technisch geen directe telefoon-naar-telefoon-
+    verbinding, maar een netwerk van onafhankelijke servers dat berichten
+    versleuteld en via omwegen (onion routing) doorgeeft en tijdelijk bewaart,
+    zodat ze ook aankomen als de ander offline is.
+  - **Voorstel:** QChat spreekt het Session-netwerk zelf. Een QR-contact is
+    dan een Session-contact, en je kunt ook chatten met mensen die alleen de
+    Session-app hebben. Dat lost meteen het ontbreken van een Session-bridge
+    op. **Uitzoeken:** kan de bibliotheek van Session (`libsession`) vanuit
+    Flutter gebruikt worden, wat is de licentie, en hoe werkt het samen met
+    de Matrix-kant in één contact?
+
+### Uiterlijk
+
+- Zo veel mogelijk zoals de **donkere modus van WhatsApp**, om te wisselen
+  met een **lichte, lichtgrijze** versie met dezelfde mogelijkheden.
+- **Geen WhatsApp-achtergronden.** Standaard gewoon donker of licht.
+- **Eigen achtergronden:** gebruikers en de community kunnen zelf
+  achtergronden maken en met elkaar uitwisselen, volgens één vaste
+  specificatie (formaat, beeldverhouding, resolutie, bestandsgrootte). Die
+  specificatie komt in een apart document.
+- **Alles aan te passen:** een **stijl-editor** (configurator) voor kleuren,
+  lettertypes, bubbels en dergelijke, zodat iedereen het ontwerp naar wens
+  kan maken. Stijlen zijn ook uit te wisselen.
+
+### Status plaatsen (broadcast-knop)
+
+- Eén **broadcast-knop** om een status te plaatsen: foto, filmpje of tekst.
+- Met een **editor** om zelf iets samen te stellen: eigen achtergrond,
+  tekst eroverheen (positioneren, verschillende tekststijlen), een geluidje
+  erbij, enz. Ruimer dan WhatsApp, waar dat lelijk beperkt is.
+- Het resultaat blijft **binnen de grenzen van WhatsApp**, zodat ook
+  mensen die alleen WhatsApp hebben het goed zien (video tot ongeveer
+  1 minuut; exacte grenzen voor duur, resolutie en bestandsgrootte nog
+  vastleggen). De editor rendert alles tot één gewone afbeelding of video.
+
 ## Stappen
 
 | Stap | Wat | Klaar als |
