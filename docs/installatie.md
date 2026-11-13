@@ -205,6 +205,28 @@ Gebruikte je eerder Beeper of een andere cloud-bridge? Ontkoppel die daar,
 en controleer bij **Gekoppelde apparaten** in WhatsApp en Signal dat alleen
 je eigen brug er nog staat.
 
+## Stap 8 – Versleutelde backups, burner en meldingen
+
+```bash
+sudo ./05-backups-instellen.sh   # backup-sleutels + herstelcode op papier + timers
+sudo ./06-burner-instellen.sh    # burner-webapp op /burner + burner-PIN op papier
+./08-meldingen-instellen.sh https://<jouw-pc>.<tailnet>.ts.net:10000
+```
+
+- **Backups** draaien elke nacht om 03:00 en zijn versleuteld met age.
+  Zet in `~/.config/brug/backup.conf` bij `BACKUP_EXTRA` een tweede map
+  **buiten de kluis**, bijvoorbeeld een map die je cloud synchroniseert.
+  Zonder die tweede plek ben je bij een burn ook je backups kwijt. Zonder je
+  backup-herstelcode kan niemand ze lezen, ook je cloud niet.
+- `05-backups-instellen.sh` maakt bij opnieuw draaien **nieuwe sleutels**
+  (dan zijn oude backups niet meer te openen). Draai het maar één keer.
+- **Meldingen** (`08-meldingen-instellen.sh`): je krijgt een pushbericht via
+  [ntfy](https://ntfy.sh) als de backup mislukt, of als de nieuwste backup
+  ouder is dan 36 uur. Dat laatste vangt ook een dichte kluis af: dan slaat
+  de backup zichzelf stilletjes over. Gebruik je eigen ntfy-server of
+  `https://ntfy.sh`. Het script maakt een geheime topic-naam aan en vertelt
+  hoe je je in de ntfy-app abonneert. Veilig om opnieuw te draaien.
+
 ## Na een herstart
 
 ```bash
@@ -255,8 +277,8 @@ In de kluis: vak 0 = je wachtwoord, vak 1 = je herstelcode.
 | `tailscale serve status` | Op welk adres de server bereikbaar is |
 
 **Niet gebruiken tenzij je het echt wilt:** `brug nuke` (wist alles).
-Backups met `brug backup` zijn nog **niet versleuteld**; bewaar ze alleen
-in de kluis. Versleutelde backups komen in fase 4.
+`brug backup` (van muxbee zelf) maakt **onversleutelde** backups; bewaar
+die alleen in de kluis. Gebruik voor echte backups `backup-maken.sh` (stap 8).
 
 ## Problemen oplossen
 
@@ -270,6 +292,7 @@ in de kluis. Versleutelde backups komen in fase 4.
 | Element X: "Kon deze homeserver niet bereiken" | Tailscale op de telefoon aan? Test het adres in de browser; draai stap 7 |
 | Element X blijft op "Offline" na inloggen | Synapse gaf `localhost` als adres. Controleer `~/.config/brug/adres`, draai `brug up`, log in Element X uit en opnieuw in |
 | Element Web: "This device doesn't support encryption" bij je telefoon | Die telefoon synchroniseert niet; zie hierboven |
+| Backup mislukt elke nacht met exit 2, log stopt bij "bestanden kopiëren" | Oude `backup-maken.sh`: de bridges zetten hun `config.yaml` op 0600. Installeer de nieuwe versie (`install -m 755 scripts/backup-maken.sh ~/.local/bin/`) |
 | Telegram-bridge herstart steeds, logs: "Legacy bridge config detected" | Muxbee heeft weer een config voor de oude bridge geschreven. Draai `./07-bridges-afstellen.sh` |
 | Telegram-bot: "Unhandled exception while requesting code", logs: `ConnectionNotInitedError` | Je draait nog de oude bridge (v0.15.3). Zet `telegram v26.10` in `versies.conf`, draai `brug up` en `./07-bridges-afstellen.sh` |
 | Bot reageert niet (alleen met `!tg`/`!wa` ervoor) | Het gesprek is geen beheerkamer meer (bijv. na een lege bridge-database). Begin een nieuw gesprek met de bot |

@@ -8,8 +8,8 @@ mainstream messengers in en zet ze terug in jouw handen: al je chats
 Zonder cloud van een bedrijf ertussen, zonder abonnement, en met de keuzes
 bij jou.
 
-> **Status: vroeg en experimenteel.** Fase 1 (de thuis-server) werkt.
-> De eigen app, de burner en versleutelde backups worden nog gebouwd.
+> **Status: vroeg en experimenteel.** De thuis-server, de burner en
+> versleutelde backups werken. De eigen app wordt nog gebouwd.
 > Gebruik het nog niet voor dingen waar je leven van afhangt.
 
 ## Wat het doet
@@ -31,9 +31,9 @@ bij jou.
 | Fase | Wat | Status |
 | --- | --- | --- |
 | 1 | Thuis-server: kluis, Matrix, bridges, toegang via Tailscale | ✅ Werkt |
-| 2 | Meer koppelingen (Telegram ✅) en privacy-instellingen per kanaal | Bezig |
-| 3 | Burner: kluis openen via je telefoon, wissen op afstand en bij diefstal | Gepland |
-| 4 | Versleutelde backups (per X MB of X berichten) naar je eigen cloud | Gepland |
+| 2 | Meer koppelingen (Telegram ✅, Discord ✅) en privacy-instellingen per kanaal | Bezig |
+| 3 | Burner: kluis openen via je telefoon, wissen op afstand en bij diefstal | ✅ Werkt |
+| 4 | Versleutelde backups (per X MB of X berichten) naar je eigen cloud, met pushmelding als het misgaat | ✅ Werkt |
 | 5 | Eigen app: één contact per persoon, kanaal kiezen per antwoord, privacy-kaart | Gepland |
 
 Meer uitleg: [docs/plan.md](docs/plan.md).
