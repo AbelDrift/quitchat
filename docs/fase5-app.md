@@ -8,7 +8,7 @@ via welk kanaal, en de burner en backups op je telefoon.
 
 **QuitChat**, overal: in de app, in F-Droid, in de code en in de
 documentatie. Technisch altijd `quitchat` (pakketnaam
-`org.codeberg.abeldrift.quitchat`, broncode in `~/AllChat/quitchat-app`).
+`org.codeberg.abeldrift.quitchat`, broncode in `~/claude/QuitChat/quitchat-app`).
 
 Besloten 13 nov 2026: géén "QChat". Die naam is al in gebruik (onder meer
 een push-to-talk-dienst van Qualcomm en Q-Chat van Quizlet), en twee namen
