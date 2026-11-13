@@ -25,6 +25,7 @@ mkdir -p "$BIN" "$UNITS" "$(dirname "$CONF")"
 echo "==> Scripts op hun plek zetten"
 install -m 755 "$SCRIPT_DIR/melding-sturen.sh" "$BIN/melding-sturen.sh"
 install -m 755 "$SCRIPT_DIR/backup-wachter.sh" "$BIN/backup-wachter.sh"
+install -m 755 "$SCRIPT_DIR/opstart-melding.sh" "$BIN/opstart-melding.sh"
 
 echo "==> ntfy instellen"
 if [[ -f "$CONF" ]]; then
@@ -91,8 +92,38 @@ Persistent=true
 WantedBy=timers.target
 UNIT
 
+# Na het opstarten van de pc (bijv. stroomstoring): melding met link naar de
+# burner-pagina en de uiterste tijd om de kluis te openen. Loopt ook zonder
+# dat je inlogt (lingering staat aan via 05-backups-instellen.sh).
+cat > "$UNITS/quitchat-opstart-melding.service" <<'UNIT'
+[Unit]
+Description=QuitChat melding na opstarten: open de kluis
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/opstart-melding.sh
+
+[Install]
+WantedBy=default.target
+UNIT
+
+# En op de pc zelf: na inloggen de burner-pagina openen als de kluis dicht is.
+ADRES="$(head -n1 "$HOME/.config/brug/adres" 2>/dev/null | tr -d '[:space:]')"
+if [[ -n "$ADRES" ]]; then
+  mkdir -p "$HOME/.config/autostart"
+  cat > "$HOME/.config/autostart/quitchat-kluis-openen.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=QuitChat: kluis openen
+Comment=Opent de burner-pagina na het opstarten als de kluis nog dicht is
+Exec=sh -c 'sleep 15; mountpoint -q /srv/brug || xdg-open ${ADRES%/}/burner/'
+X-GNOME-Autostart-enabled=true
+DESKTOP
+fi
+
 systemctl --user daemon-reload
 systemctl --user enable --now quitchat-backup-wachter.timer >/dev/null
+systemctl --user enable quitchat-opstart-melding.service >/dev/null
 
 echo "==> Testmelding sturen"
 if "$BIN/melding-sturen.sh" "QuitChat: meldingen werken" \

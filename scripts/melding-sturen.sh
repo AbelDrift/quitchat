@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # QuitChat – stuurt een pushmelding naar je telefoon via ntfy.
-# Gebruik: melding-sturen.sh "titel" "tekst" [prioriteit]
+# Gebruik: melding-sturen.sh "titel" "tekst" [prioriteit] [link]
+#   link: adres dat opent als je op de melding tikt (optioneel)
 #   prioriteit: min, low, default, high of urgent (standaard: default)
 # Instellingen in ~/.config/brug/melding.conf (zie 08-meldingen-instellen.sh).
 # Zonder instellingen wordt er niets verstuurd (alleen gelogd).
@@ -19,6 +20,7 @@ MELDING_NTFY_TOPIC=""
 TITEL="${1:?Gebruik: melding-sturen.sh \"titel\" \"tekst\" [prioriteit]}"
 TEKST="${2:-}"
 PRIO="${3:-default}"
+LINK="${4:-}"
 
 if [[ -z "$MELDING_NTFY_SERVER" || -z "$MELDING_NTFY_TOPIC" ]]; then
   log "niet verstuurd (geen ntfy ingesteld): $TITEL"
@@ -29,9 +31,12 @@ fi
 JSON="$(python3 -I -c '
 import json, sys
 prio = {"min": 1, "low": 2, "default": 3, "high": 4, "urgent": 5}.get(sys.argv[4], 3)
-print(json.dumps({"topic": sys.argv[1], "title": sys.argv[2], "message": sys.argv[3] or sys.argv[2],
-                  "priority": prio, "tags": ["floppy_disk"]}))
-' "$MELDING_NTFY_TOPIC" "$TITEL" "$TEKST" "$PRIO")"
+bericht = {"topic": sys.argv[1], "title": sys.argv[2], "message": sys.argv[3] or sys.argv[2],
+           "priority": prio, "tags": ["floppy_disk"]}
+if sys.argv[5]:
+    bericht["click"] = sys.argv[5]
+print(json.dumps(bericht))
+' "$MELDING_NTFY_TOPIC" "$TITEL" "$TEKST" "$PRIO" "$LINK")"
 
 if curl -fsS --max-time 20 -H 'Content-Type: application/json' -d "$JSON" \
      "${MELDING_NTFY_SERVER%/}/" >/dev/null 2>>"$LOG"; then
