@@ -61,10 +61,10 @@ een seconde, ook op SD-kaarten en SSD's).
 - **Backup-burner:** wist backups in de eigen cloud en vernietigt de
   backup-sleutel.
 
-### Fase 5 – Eigen app
+### Fase 5 – Eigen app (QChat)
 
-Waarschijnlijk gebaseerd op een bestaande open-source Matrix-app
-(bijvoorbeeld FluffyChat), uitgebreid met:
+Gebaseerd op een fork van FluffyChat (besloten 13 nov 2026). Uitgewerkt in
+[fase5-app.md](fase5-app.md). Uitgebreid met:
 
 - **Eén persoon = één contact:** alle kanalen van iemand in één tijdlijn.
   Automatisch samenvoegen op telefoonnummer (vaak gelijk bij WhatsApp,

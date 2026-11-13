@@ -113,8 +113,9 @@ User=${BURNER_USER}
 WorkingDirectory=${APP_DIR}
 ExecStart=/usr/bin/python3 ${APP_DIR}/app.py
 Restart=on-failure
-# Beperken wat de app kan
-NoNewPrivileges=yes
+# Beperken wat de app kan. Geen NoNewPrivileges: de app moet via sudo de
+# wrappers kunnen draaien (sudoers staat alleen die drie toe), en
+# NoNewPrivileges blokkeert sudo volledig.
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
