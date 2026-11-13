@@ -34,7 +34,10 @@ if findmnt -nro OPTIONS "$MAP" | grep -q '\bro\b'; then
   echo "Kluis is read-only gemount. Sluit af en probeer opnieuw." >&2
   exit 2
 fi
-echo "Kluis geopend."
+echo "Kluis geopend. De brug start op de achtergrond (een paar minuten)."
+# Op de achtergrond: de webapp wacht maar 60 seconden op dit script.
+setsid /opt/quitchat-burner/wrappers/containers-starten.sh \
+  >> /var/log/quitchat-burner/starten.log 2>&1 < /dev/null &
 
 # De scherp-vlag wissen (we zijn blijkbaar nog bij ons verstand)
 rm -f /var/lib/quitchat-burner/scherp 2>/dev/null || true

@@ -22,6 +22,9 @@ set -euo pipefail
 # Aantal berichten dat een nieuwe chat meekrijgt.
 WHATSAPP_GESCHIEDENIS="${WHATSAPP_GESCHIEDENIS:-10000}"
 TELEGRAM_GESCHIEDENIS="${TELEGRAM_GESCHIEDENIS:-2000}"
+# WhatsApp-statussen van je contacten tonen (kamer "WhatsApp Status").
+# Plaatsen blijft uit; dat komt via de eigen app.
+WHATSAPP_STATUS_BEKIJKEN="${WHATSAPP_STATUS_BEKIJKEN:-ja}"
 
 BRIDGES="${BRIDGES_DIR:-/srv/brug/data/muxbee/bridges}"
 KOPIE_MAP="${KOPIE_MAP:-/srv/brug/backups/handmatig}"
@@ -149,8 +152,17 @@ PY
 if [[ -f "$BRIDGES/whatsapp/registration.yaml" ]]; then
   echo "==> WhatsApp"
   config_lezen whatsapp "$WERK/wa.yaml"
+  wa_veranderd=nee
   if backfill_zetten "$WERK/wa.yaml" "$WHATSAPP_GESCHIEDENIS"; then
     veranderd whatsapp "nieuwe chats krijgen tot $WHATSAPP_GESCHIEDENIS berichten mee"
+    wa_veranderd=ja
+  fi
+  if [[ "$WHATSAPP_STATUS_BEKIJKEN" == ja ]] && grep -q '^    enable_status_broadcast: false$' "$WERK/wa.yaml"; then
+    sed -i 's/^    enable_status_broadcast: false$/    enable_status_broadcast: true/' "$WERK/wa.yaml"
+    veranderd whatsapp "statussen van contacten bekijken aan (plaatsen blijft uit)"
+    wa_veranderd=ja
+  fi
+  if [[ "$wa_veranderd" == ja ]]; then
     if [[ "$DROOG" == nee ]]; then config_schrijven whatsapp "$WERK/wa.yaml"; herstarten whatsapp; fi
   else
     echo "  staat al goed"
@@ -192,6 +204,13 @@ if [[ -f "$BRIDGES/telegram/registration.yaml" ]]; then
   else
     echo "  staat al goed"
   fi
+fi
+
+# Zichzelf installeren, zodat "brug up" dit na elke start kan draaien
+# (muxbee schrijft bij elke "up" de bridge-instellingen opnieuw).
+if [[ "$DROOG" == nee && -z "${BRIDGES_DIR:-}" ]]; then
+  mkdir -p "$HOME/.local/bin"
+  install -m 755 "${BASH_SOURCE[0]}" "$HOME/.local/bin/bridges-afstellen.sh" 2>/dev/null || true
 fi
 
 [[ "$DROOG" == ja ]] && echo "(droog: er is niets veranderd)"

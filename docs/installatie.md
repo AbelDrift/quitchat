@@ -227,12 +227,29 @@ sudo ./06-burner-instellen.sh    # burner-webapp op /burner + burner-PIN op papi
   `https://ntfy.sh`. Het script maakt een geheime topic-naam aan en vertelt
   hoe je je in de ntfy-app abonneert. Veilig om opnieuw te draaien.
 
+## Stap 9 – Brug nooit zonder kluis laten starten (eenmalig)
+
+```bash
+sudo ./09-kluis-afdichten.sh
+```
+
+Docker start de containers zelf bij het opstarten van de pc. Is de kluis dan
+nog dicht, dan maakt Postgres een **lege database** in de lege map onder
+`/srv/brug`, en ziet Synapse geen enkele chat meer (zo ging het eind oktober
+en op 13 nov 2026). Dit script maakt die map onder de kluis leeg en
+onveranderbaar: zonder kluis kunnen de containers dan niet starten.
+Wat er onder de kluis stond, gaat naar `/var/backups/`.
+
 ## Na een herstart
 
 ```bash
-sudo ./kluis-open.sh      # wachtwoord of herstelcode typen
-brug up
+sudo ./kluis-open.sh      # wachtwoord of herstelcode typen; start daarna ook de brug
 ```
+
+Of open de kluis via de burner-webapp op je telefoon; ook die start de brug.
+`brug up` is daarna niet nodig. Gebruik je het toch, dan zet `brug` de
+bridge-instellingen daarna vanzelf terug (muxbee overschrijft ze bij elke
+`up`).
 
 ## Afsluiten en kluis op slot
 
@@ -296,6 +313,7 @@ die alleen in de kluis. Gebruik voor echte backups `backup-maken.sh` (stap 8).
 | Telegram-bridge herstart steeds, logs: "Legacy bridge config detected" | Muxbee heeft weer een config voor de oude bridge geschreven. Draai `./07-bridges-afstellen.sh` |
 | Telegram-bot: "Unhandled exception while requesting code", logs: `ConnectionNotInitedError` | Je draait nog de oude bridge (v0.15.3). Zet `telegram v26.10` in `versies.conf`, draai `brug up` en `./07-bridges-afstellen.sh` |
 | Bot reageert niet (alleen met `!tg`/`!wa` ervoor) | Het gesprek is geen beheerkamer meer (bijv. na een lege bridge-database). Begin een nieuw gesprek met de bot |
+| Na een herstart: geen chats, Synapse-database leeg (0 rooms) | Postgres startte vóór de kluis open was en gebruikt een lege map. Bridges stoppen, `docker restart muxbee-postgres-1`, dan Synapse en bridges starten. Voorkomen: `sudo ./09-kluis-afdichten.sh` |
 | Chats na een database-incident leeg, bridge-logs: "Could not find room_version" | De bridge verwijst naar rooms die Synapse niet meer kent. Bridge stoppen, zijn database opzij zetten, opnieuw koppelen |
 | Bot aanmaken mislukt, Synapse-logs: `duplicate key ... profiles_user_id_key` | Los profiel van de bot zonder gebruiker. Verwijder die ene rij uit `profiles` en start de bridge opnieuw |
 | `brug` zegt "De kluis is dicht" | `sudo ./kluis-open.sh` |

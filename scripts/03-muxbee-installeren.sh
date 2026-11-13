@@ -126,6 +126,16 @@ adres_zetten() {
   echo "    Klaar (Synapse is over ongeveer 20 seconden weer bereikbaar)."
 }
 
+# Muxbee schrijft bij elke "up" de bridge-instellingen opnieuw (oude
+# Telegram-config, 50 berichten geschiedenis, statussen uit). Zet ze daarna
+# weer goed met 07-bridges-afstellen.sh (geïnstalleerd als bridges-afstellen.sh).
+bridges_afstellen() {
+  local s="$HOME/.local/bin/bridges-afstellen.sh"
+  [[ -x "$s" ]] || return 0
+  echo "==> Bridge-instellingen herstellen"
+  "$s" || echo "Let op: bridges-afstellen.sh gaf een fout."
+}
+
 case "${1:-}" in
   update)
     # Niet muxbee update gebruiken: dat haalt testversies van de bridges op.
@@ -136,6 +146,7 @@ case "${1:-}" in
     versies_vastzetten ja
     "$MUXBEE" up
     adres_zetten
+    bridges_afstellen
     exit 0
     ;;
   ""|tui|up|init|bridge|restore)
@@ -155,6 +166,7 @@ case "${1:-}" in
       for a in "$@"; do [[ "$a" == "--pull" ]] || args+=("$a"); done
       "$MUXBEE" up "${args[@]+"${args[@]}"}"
       adres_zetten
+      bridges_afstellen
       exit 0
     fi
     ;;

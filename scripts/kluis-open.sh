@@ -38,4 +38,11 @@ if findmnt -nro OPTIONS "$MAP" | grep -q '\bro\b'; then
   echo "sudo ./kluis-dicht.sh en probeer opnieuw. Blijft het ro, laat het weten."
   exit 2
 fi
-echo "De kluis is open. Start de brug met: brug up"
+echo "De kluis is open."
+# Brug starten in de goede volgorde (Postgres opnieuw, zodat hij zeker de
+# database in de kluis gebruikt). Zie tools/burner/wrappers/containers-starten.sh.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if command -v docker >/dev/null; then
+  "$SCRIPT_DIR/../tools/burner/wrappers/containers-starten.sh" \
+    || echo "Starten lukte niet helemaal; probeer: brug up"
+fi
