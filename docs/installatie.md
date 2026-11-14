@@ -240,6 +240,26 @@ en op 13 nov 2026). Dit script maakt die map onder de kluis leeg en
 onveranderbaar: zonder kluis kunnen de containers dan niet starten.
 Wat er onder de kluis stond, gaat naar `/var/backups/`.
 
+## Stap 10 – Pushmeldingen voor de app (eenmalig)
+
+```bash
+sudo ./10-push-instellen.sh
+```
+
+De app op je telefoon (QuitChat, FluffyChat of Element X) vraagt Synapse om
+meldingen naar je eigen ntfy-server te sturen. Synapse draait in Docker, en
+Tailscale neemt alleen verbindingen aan die via de tailnet binnenkomen:
+vanuit Docker krijgt Synapse "connection refused", en er komen geen
+meldingen. Dit script zet een klein doorgeefluik op de pc (systemd, geen
+extra pakketten). Het geeft de versleutelde verbinding ongewijzigd door aan
+Tailscale, dus het certificaat blijft kloppen, en alleen Docker-containers
+mogen erop. `brug` stuurt Synapse daarna na elke `up` vanzelf via dat
+doorgeefluik. Het script test aan het eind of Synapse ntfy bereikt.
+
+Op de telefoon: zet in de **ntfy-app** bij *Instellingen → Standaardserver*
+je eigen server (`https://<naam>.ts.net:10000`), en kies in de chat-app
+**ntfy** als meldingsdienst (*UnifiedPush*).
+
 ## Na een herstart
 
 ```bash
@@ -269,6 +289,13 @@ versies verschijnen rond de 16e van elke maand (zie https://mau.fi/blog/).
 Pas dan het nummer in `versies.conf` aan (bijv. `v26.11`) en draai
 `brug update`. Een nieuwe bridge erbij? Voeg een regel toe, bijv.
 `telegram v26.10`.
+
+Iets veranderd in `tools/burner/` (bijvoorbeeld na `git pull`)? Werk de
+burner bij zonder een nieuwe PIN te maken:
+
+```bash
+sudo ./burner-bijwerken.sh
+```
 
 ## Wachtwoorden en herstelcodes beheren
 
@@ -317,6 +344,9 @@ die alleen in de kluis. Gebruik voor echte backups `backup-maken.sh` (stap 8).
 | Chats na een database-incident leeg, bridge-logs: "Could not find room_version" | De bridge verwijst naar rooms die Synapse niet meer kent. Bridge stoppen, zijn database opzij zetten, opnieuw koppelen |
 | Bot aanmaken mislukt, Synapse-logs: `duplicate key ... profiles_user_id_key` | Los profiel van de bot zonder gebruiker. Verwijder die ene rij uit `profiles` en start de bridge opnieuw |
 | `brug` zegt "De kluis is dicht" | `sudo ./kluis-open.sh` |
+| `kluis-open.sh`: "herstart nodig" | De kluis hing nog alleen-lezen open en een proces houdt hem vast. Herstart de pc en open de kluis opnieuw. (Zonder vasthouder ruimt het script een alleen-lezen kluis zelf op.) |
+| `kluis-dicht.sh`: "losgekoppeld, maar nog NIET dicht" | Een container of dienst heeft nog een eigen kopie van de koppeling. Het script noemt welke; stop die (of herstart de pc), dan is de kluis echt dicht |
+| Geen meldingen op de telefoon | Draai `sudo ./10-push-instellen.sh` (test zelf of Synapse ntfy bereikt). Kies in de app ntfy als meldingsdienst, met je eigen server |
 
 ## Wat staat waar
 

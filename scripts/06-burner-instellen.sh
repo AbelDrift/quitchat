@@ -42,10 +42,12 @@ echo "==> App-bestanden plaatsen in $APP_DIR"
 mkdir -p "$APP_DIR" "$STATE_DIR" "$LOG_DIR"
 cp -R "$BURNER_BRON/app.py" "$BURNER_BRON/templates" "$BURNER_BRON/wrappers" "$APP_DIR/"
 chmod +x "$APP_DIR"/wrappers/*.sh
-chown -R "$BURNER_USER":"$BURNER_USER" "$APP_DIR" "$STATE_DIR" "$LOG_DIR"
-# De wrappers draaien straks via sudo als root; eigenaarschap root is netter.
-chown root:root "$APP_DIR"/wrappers/*.sh
-chmod 755 "$APP_DIR/wrappers"
+# De app-map (met de wrappers die via sudo als root draaien) is van root:
+# mocht de burner-user de mappen kunnen wijzigen, dan kan hij een wrapper
+# vervangen en zo root worden. De app schrijft alleen in STATE_DIR en LOG_DIR.
+chown -R root:root "$APP_DIR"
+chmod -R go-w "$APP_DIR"
+chown -R "$BURNER_USER":"$BURNER_USER" "$STATE_DIR" "$LOG_DIR"
 
 # Default grace-tijd
 if [[ ! -f "$STATE_DIR/grace-minuten" ]]; then

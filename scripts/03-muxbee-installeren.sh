@@ -106,24 +106,60 @@ versies_vastzetten() {
   done < "$VERSIES"
 }
 
-# Het adres waarop je telefoon de server bereikt (bijv. via Tailscale).
-# Muxbee zet Synapse bij elke start op http://localhost:8008; apps als
-# Element X gaan dan na het inloggen naar "localhost" en blijven offline.
-# Staat er een adres in ~/.config/brug/adres, dan zetten we dat na elke start goed.
+# Muxbee schrijft bij elke start (ook via tui, bridge, restore) de
+# Synapse-instellingen opnieuw. Daarna zetten we twee dingen goed:
+#  - Het adres waarop je telefoon de server bereikt (~/.config/brug/adres).
+#    Muxbee zet http://localhost:8008; apps als Element X gaan dan na het
+#    inloggen naar "localhost" en blijven offline.
+#  - Push naar je eigen ntfy (als 10-push-instellen.sh gedraaid is). Synapse
+#    in Docker kan de Tailscale-naam niet zelf bereiken; via extra_hosts gaat
+#    hij naar het doorgeefluik op de Docker-host. Synapse blokkeert privé-
+#    adressen standaard, daarom staat dat ene adres op de witte lijst.
+# Veilig om vaak te draaien: Synapse herstart alleen als er iets veranderde.
 ADRES_CONF="$HOME/.config/brug/adres"
-adres_zetten() {
+synapse_afstellen() {
   [[ -f "$ADRES_CONF" ]] || return 0
-  local adres hs
+  local adres naam gw hs dc hs_oud
   adres="$(head -n1 "$ADRES_CONF" | tr -d '[:space:]')"
   adres="${adres%/}"
   [[ -n "$adres" ]] || return 0
+  naam="${adres#*://}"; naam="${naam%%[:/]*}"
   hs="$MAP/config/muxbee/synapse/homeserver.yaml"
+  dc="$MAP/config/muxbee/docker-compose.yml"
   [[ -f "$hs" ]] || { echo "Let op: $hs niet gevonden; adres niet ingesteld."; return 0; }
-  sed -i '/^public_baseurl:/d' "$hs"
-  printf 'public_baseurl: "%s/"\n' "$adres" >> "$hs"
-  echo "==> Synapse herstarten met adres $adres"
-  docker restart muxbee-synapse-1 >/dev/null
-  echo "    Klaar (Synapse is over ongeveer 20 seconden weer bereikbaar)."
+  hs_oud="$(md5sum < "$hs")"
+  if ! grep -qxF "public_baseurl: \"$adres/\"" "$hs"; then
+    sed -i '/^public_baseurl:/d' "$hs"
+    printf 'public_baseurl: "%s/"\n' "$adres" >> "$hs"
+  fi
+  if systemctl is-enabled -q quitchat-push.socket 2>/dev/null && [[ -f "$dc" ]]; then
+    gw="$(docker network inspect bridge -f '{{(index .IPAM.Config 0).Gateway}}')"
+    if ! grep -qxF "ip_range_whitelist: [\"$gw\"]" "$hs"; then
+      sed -i '/^ip_range_whitelist:/d' "$hs"
+      printf 'ip_range_whitelist: ["%s"]\n' "$gw" >> "$hs"
+    fi
+    grep -qF "$naam:host-gateway" "$dc" \
+      || sed -i "/^  synapse:\$/a\\    extra_hosts: [\"$naam:host-gateway\"]" "$dc"
+    # Docker bewaart het als "naam:host-gateway" of (nieuwer) "naam=host-gateway".
+    if ! docker inspect -f '{{.HostConfig.ExtraHosts}}' muxbee-synapse-1 2>/dev/null \
+         | grep -qE "$naam[:=]host-gateway"; then
+      echo "==> Synapse opnieuw aanmaken (adres $adres, push via ntfy)"
+      local uit
+      if uit="$(CONFIG_DIR="$MAP/config/muxbee" DATA_DIR="$MAP/data/muxbee" \
+                docker compose -f "$dc" up -d --no-deps synapse 2>&1)"; then
+        echo "    Klaar (Synapse is over ongeveer 20 seconden weer bereikbaar)."
+      else
+        grep -v 'variable is not set' <<< "$uit" >&2
+        echo "Let op: Synapse opnieuw aanmaken lukte niet; probeer: brug up" >&2
+      fi
+      return 0
+    fi
+  fi
+  if [[ "$(md5sum < "$hs")" != "$hs_oud" ]]; then
+    echo "==> Synapse herstarten met adres $adres"
+    docker restart muxbee-synapse-1 >/dev/null
+    echo "    Klaar (Synapse is over ongeveer 20 seconden weer bereikbaar)."
+  fi
 }
 
 # Muxbee schrijft bij elke "up" de bridge-instellingen opnieuw (oude
@@ -145,30 +181,34 @@ case "${1:-}" in
     docker pull -q vectorim/element-web:latest >/dev/null
     versies_vastzetten ja
     "$MUXBEE" up
-    adres_zetten
+    synapse_afstellen
     bridges_afstellen
+    exit 0
+    ;;
+  afstellen)
+    # Alleen de Synapse-instellingen goedzetten (gebruikt door 10-push-instellen.sh).
+    synapse_afstellen
     exit 0
     ;;
   ""|tui|up|init|bridge|restore)
     rechten_zetten
     [[ "${1:-}" == "init" ]] || versies_vastzetten
-    # Aan- of uitzetten van een bridge herstart Synapse met http://localhost:8008;
-    # zet daarna het echte adres weer goed.
-    if [[ "${1:-}" == "bridge" && ( "${2:-}" == "enable" || "${2:-}" == "disable" ) ]]; then
-      "$MUXBEE" "$@"
-      adres_zetten
-      exit 0
-    fi
     # "up --pull" zou testversies ophalen; daarom zonder --pull.
     if [[ "${1:-}" == "up" ]]; then
       shift
       args=()
       for a in "$@"; do [[ "$a" == "--pull" ]] || args+=("$a"); done
       "$MUXBEE" up "${args[@]+"${args[@]}"}"
-      adres_zetten
+      synapse_afstellen
       bridges_afstellen
       exit 0
     fi
+    # De rest (tui, bridge enable/disable, restore) kan Synapse terugzetten
+    # op http://localhost:8008; zet daarna het echte adres weer goed.
+    status=0
+    "$MUXBEE" "$@" || status=$?
+    synapse_afstellen
+    exit "$status"
     ;;
 esac
 exec "$MUXBEE" "$@"
