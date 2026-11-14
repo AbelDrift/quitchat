@@ -14,6 +14,13 @@ LOG="$LOG_DIR/backup.log"
 
 log() { printf '[%s] %s\n' "$(date '+%F %T')" "$*" | tee -a "$LOG"; }
 
+# Nooit twee backups tegelijk (de timer en de triggers kunnen samenvallen).
+exec 9>"$LOG_DIR/backup.lock"
+if ! flock -n 9; then
+  log "Er loopt al een backup; deze slaat over."
+  exit 0
+fi
+
 # Standaardwaarden
 BACKUP_HOOFD="$MAP/backups"
 BACKUP_EXTRA=""
@@ -67,6 +74,7 @@ if ! docker run --rm --network none -v "$MAP:/bron:ro" "$LEES_IMAGE" \
         --exclude='data/muxbee/postgres' \
         --exclude='config/muxbee/postgres' \
         --exclude='backups' \
+        --exclude='data/muxbee/synapse/media_store' \
         -cf - config data 2>>"$LOG" \
     | tar -C "$WERK/bestanden" --no-same-owner -xf -; then
   log "FOUT: bestanden kopiëren mislukt (zie meldingen hierboven in $LOG)"
@@ -78,6 +86,43 @@ log "  inpakken en versleutelen"
 mkdir -p "$BACKUP_HOOFD"
 tar -C "$WERK" -czf - . | age -R "$BACKUP_DIR/public.txt" > "$BACKUP_HOOFD/$NAAM.tmp"
 mv "$BACKUP_HOOFD/$NAAM.tmp" "$BACKUP_HOOFD/$NAAM"
+
+# 3b. Media (foto's, filmpjes, spraakberichten) apart: elk bestand één keer,
+# los versleuteld in $BACKUP_HOOFD/media. Synapse verandert een mediabestand
+# nooit (vaste, unieke naam), dus alleen nieuwe bestanden komen erbij. Zo
+# staan dezelfde media niet in elke backup opnieuw (2,8 GB × 14 in nov 2026).
+# shortcut: media die Synapse verwijdert blijven in de backup staan; opruimen
+# toevoegen als er ooit media-retentie aan gaat.
+MEDIA_REL="data/muxbee/synapse/media_store"
+MEDIA_DOEL="$BACKUP_HOOFD/media"
+log "  media bijwerken"
+mkdir -p "$WERK/media" "$MEDIA_DOEL"
+find "$MEDIA_DOEL" -name '*.tmp' -delete   # resten van een afgebroken backup
+if ! docker run --rm --network none -v "$MAP:/bron:ro" "$LEES_IMAGE" \
+      sh -c "[ -d /bron/$MEDIA_REL ] || exit 0; cd /bron/$MEDIA_REL && find . -type f" \
+      > "$WERK/media-alle.txt" 2>>"$LOG"; then
+  log "FOUT: media-lijst maken mislukt"
+  exit 1
+fi
+while IFS= read -r f; do
+  [[ -f "$MEDIA_DOEL/${f#./}.age" ]] || printf '%s\n' "$f"
+done < "$WERK/media-alle.txt" > "$WERK/media-nieuw.txt"
+if [[ -s "$WERK/media-nieuw.txt" ]]; then
+  if ! docker run --rm -i --network none -v "$MAP:/bron:ro" "$LEES_IMAGE" \
+        tar -C "/bron/$MEDIA_REL" -cf - -T - < "$WERK/media-nieuw.txt" 2>>"$LOG" \
+      | tar -C "$WERK/media" --no-same-owner -xf -; then
+    log "FOUT: nieuwe media kopiëren mislukt"
+    exit 1
+  fi
+  while IFS= read -r f; do
+    f="${f#./}"
+    mkdir -p "$MEDIA_DOEL/$(dirname "$f")"
+    age -R "$BACKUP_DIR/public.txt" -o "$MEDIA_DOEL/$f.age.tmp" "$WERK/media/$f"
+    mv "$MEDIA_DOEL/$f.age.tmp" "$MEDIA_DOEL/$f.age"
+    rm -f "$WERK/media/$f"
+  done < "$WERK/media-nieuw.txt"
+fi
+log "  media: $(wc -l < "$WERK/media-nieuw.txt") nieuw, $(wc -l < "$WERK/media-alle.txt") in totaal"
 
 # 4. Herstelbestand bijleggen (dezelfde voor alle backups; wordt vernieuwd)
 cp -f "$BACKUP_DIR/identity-herstel.gpg" "$BACKUP_HOOFD/identity-herstel.gpg"
@@ -94,7 +139,20 @@ kopieer_naar() {
     return
   fi
   cp -f "$BACKUP_DIR/identity-herstel.gpg" "$doel/identity-herstel.gpg"
+  media_spiegelen "$doel" || log "  let op: niet alle media konden naar $doel"
   log "  ook naar: $doel"
+}
+
+# Ontbrekende media-bestanden (al versleuteld) naar $1/media kopiëren.
+media_spiegelen() {
+  local f
+  find "$1/media" -name '*.tmp' -delete 2>/dev/null || true
+  (cd "$MEDIA_DOEL" && find . -type f -name '*.age') | while IFS= read -r f; do
+    f="${f#./}"
+    [[ -f "$1/media/$f" ]] && continue
+    mkdir -p "$1/media/$(dirname "$f")"
+    cp "$MEDIA_DOEL/$f" "$1/media/$f.tmp" && mv "$1/media/$f.tmp" "$1/media/$f"
+  done
 }
 
 if [[ -n "${BACKUP_EXTRA:-}" ]]; then

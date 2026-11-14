@@ -92,6 +92,25 @@ if [[ -d "$WERK/uitpakken/bestanden" ]]; then
   mv "$WERK/uitpakken/bestanden"/* "$MAP/"
 fi
 
+# Media staan sinds nov 2026 apart, elk bestand één keer (zie backup-maken.sh).
+if [[ -d "$BACKUP_MAP/media" ]]; then
+  echo "==> Media terugzetten"
+  MEDIA="$MAP/data/muxbee/synapse/media_store"
+  n=0; mis=0
+  while IFS= read -r f; do
+    f="${f#./}"; uit="$MEDIA/${f%.age}"
+    [[ -e "$uit" ]] && continue
+    mkdir -p "$(dirname "$uit")"
+    if age -d -i "$IDENTITY" -o "$uit.tmp" "$BACKUP_MAP/media/$f"; then
+      mv "$uit.tmp" "$uit"; n=$((n + 1))
+    else
+      rm -f "$uit.tmp"; mis=$((mis + 1))
+    fi
+  done < <(cd "$BACKUP_MAP/media" && find . -type f -name '*.age')
+  echo "    $n bestanden teruggezet."
+  (( mis == 0 )) || echo "    Let op: $mis bestanden waren niet te openen."
+fi
+
 echo "==> Database terugzetten (als die in de backup zit)"
 if [[ -f "$WERK/uitpakken/postgres.sql" ]]; then
   # Muxbee opstarten zodat postgres draait, dan de dump terugzetten
