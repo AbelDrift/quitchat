@@ -125,7 +125,7 @@ status op elk platform dat het kan, en laat zien waar het niet lukte, met
 een snelkoppeling om het daar zelf te doen. Per platform staat erbij wie de
 status kan zien.
 
-## Stand van 5a (14 nov 2026)
+## Stand van 5a (15 nov 2026)
 
 Klaar:
 
@@ -138,10 +138,14 @@ Klaar:
   niet in de openbare broncode.
 - `bouwen.sh` bouwt alleen arm64; releases met een eigen sleutel buiten de repo.
 - Meldingen: Synapse bereikt ntfy via een doorgeefluik op de pc
-  (`scripts/10-push-instellen.sh`).
+  (`scripts/10-push-instellen.sh`); QuitChat op de Fairphone is ingelogd
+  en aangemeld bij ntfy (15 nov).
 
 Nog te doen:
 
 - Eigen repo voor de app op Codeberg en GitHub.
 - Op de Fairphone: inloggen, meldingen via ntfy testen, een week naast
   Element X gebruiken. Daarna Element X van push.murena.com af, of weg.
+- Pc-versie (Linux) bouwen en installeren; die vervangt Element op de pc.
+  Daarna kunnen Element (pc en telefoon), FluffyChat en de Element-webapp
+  van muxbee (`muxbee-element`) weg: alles via QuitChat.
