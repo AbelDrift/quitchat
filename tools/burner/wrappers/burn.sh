@@ -11,6 +11,10 @@ KLUIS=/srv/brug.kluis
 NAAM=brug
 MAP=/srv/brug
 LOG=/var/log/quitchat-burner/burn.log
+
+# shellcheck source=kluis-hulp.sh
+source "$(dirname -- "$(readlink -f -- "$0")")/kluis-hulp.sh"
+buiten_sandbox "$@"
 REDEN="handmatig"
 JA=nee
 

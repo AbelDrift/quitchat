@@ -7,10 +7,21 @@ KLUIS=/srv/brug.kluis
 NAAM=brug
 MAP=/srv/brug
 
+# shellcheck source=kluis-hulp.sh
+source "$(dirname -- "$(readlink -f -- "$0")")/kluis-hulp.sh"
+buiten_sandbox "$@"
+
 if mountpoint -q "$MAP"; then
+  if findmnt -nro OPTIONS "$MAP" | grep -q '\bro\b'; then
+    echo "Kluis is open, maar alleen-lezen. Sluit hem op de pc (kluis-dicht.sh) en open opnieuw." >&2
+    exit 2
+  fi
   echo "Kluis is al open."
   exit 0
 fi
+
+# Een oude alleen-lezen mapper eerst opruimen (of: herstart nodig).
+mapper_opruimen_voor_openen
 
 # Lees het wachtwoord van stdin, geef het aan cryptsetup via file descriptor
 # (zodat het nergens op schijf of in de proceslijst verschijnt).

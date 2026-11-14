@@ -12,10 +12,22 @@ if [[ $EUID -ne 0 ]]; then
   echo "Start dit script met: sudo ./kluis-open.sh"
   exit 1
 fi
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../tools/burner/wrappers/kluis-hulp.sh
+source "$SCRIPT_DIR/../tools/burner/wrappers/kluis-hulp.sh"
+
 if mountpoint -q "$MAP"; then
+  if findmnt -nro OPTIONS "$MAP" | grep -q '\bro\b'; then
+    echo "De kluis is open, maar alleen-lezen. Sluit hem met"
+    echo "sudo ./kluis-dicht.sh en open hem daarna opnieuw."
+    exit 2
+  fi
   echo "De kluis is al open."
   exit 0
 fi
+
+# Een oude alleen-lezen mapper eerst opruimen (of: herstart nodig).
+mapper_opruimen_voor_openen
 
 if [[ ! -e "/dev/mapper/$NAAM" ]]; then
   # Loop-device zelf opzetten en udev laten settlen, voordat we cryptsetup
@@ -41,7 +53,6 @@ fi
 echo "De kluis is open."
 # Brug starten in de goede volgorde (Postgres opnieuw, zodat hij zeker de
 # database in de kluis gebruikt). Zie tools/burner/wrappers/containers-starten.sh.
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 if command -v docker >/dev/null; then
   "$SCRIPT_DIR/../tools/burner/wrappers/containers-starten.sh" \
     || echo "Starten lukte niet helemaal; probeer: brug up"
