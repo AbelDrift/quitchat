@@ -140,12 +140,16 @@ Klaar:
 - Meldingen: Synapse bereikt ntfy via een doorgeefluik op de pc
   (`scripts/10-push-instellen.sh`); QuitChat op de Fairphone is ingelogd
   en aangemeld bij ntfy (15 nov).
+- Pc-versie (Linux): `./bouwen.sh release --linux` bouwt en installeert in
+  `~/.local/opt/quitchat` met een menu-item. De meegeleverde SQLCipher vraagt
+  glibc 2.38; `linux/sqlcipher-debian12.sh` maakt hem geschikt voor Debian 12.
+  Voor spraakberichten en video is `libmpv2` nodig (apt).
 
 Nog te doen:
 
 - Eigen repo voor de app op Codeberg en GitHub.
 - Op de Fairphone: inloggen, meldingen via ntfy testen, een week naast
   Element X gebruiken. Daarna Element X van push.murena.com af, of weg.
-- Pc-versie (Linux) bouwen en installeren; die vervangt Element op de pc.
+- Pc-versie (Linux) een week gebruiken; die vervangt Element op de pc.
   Daarna kunnen Element (pc en telefoon), FluffyChat en de Element-webapp
   van muxbee (`muxbee-element`) weg: alles via QuitChat.
