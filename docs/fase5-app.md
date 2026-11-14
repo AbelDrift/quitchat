@@ -125,9 +125,23 @@ status op elk platform dat het kan, en laat zien waar het niet lukte, met
 een snelkoppeling om het daar zelf te doen. Per platform staat erbij wie de
 status kan zien.
 
-## Nodig om te beginnen
+## Stand van 5a (14 nov 2026)
 
-- Flutter en de Android SDK op de thuis-pc (een paar GB). Dezelfde
-  installatie kan later ook voor de camera-fix van de FMD-app.
-- De Fairphone via USB met *USB-foutopsporing* aan, voor het testen.
-- Een eigen repo voor de app (fork van FluffyChat), naast de server-repo.
+Klaar:
+
+- Ontwikkelomgeving op de thuis-pc (Flutter, Android SDK, Java 17, Rust);
+  de Fairphone via USB-foutopsporing.
+- Fork van FluffyChat in `~/claude/QuitChat/quitchat-app`, met naam
+  **QuitChat**, pakket `org.codeberg.abeldrift.quitchat` en een eigen logo
+  (spraakballon als Q). Details in `QUITCHAT.md` in de app-repo.
+- Eigen server standaard; het adres wordt bij het bouwen meegegeven en staat
+  niet in de openbare broncode.
+- `bouwen.sh` bouwt alleen arm64; releases met een eigen sleutel buiten de repo.
+- Meldingen: Synapse bereikt ntfy via een doorgeefluik op de pc
+  (`scripts/10-push-instellen.sh`).
+
+Nog te doen:
+
+- Eigen repo voor de app op Codeberg en GitHub.
+- Op de Fairphone: inloggen, meldingen via ntfy testen, een week naast
+  Element X gebruiken. Daarna Element X van push.murena.com af, of weg.
