@@ -23,8 +23,11 @@ set -euo pipefail
 WHATSAPP_GESCHIEDENIS="${WHATSAPP_GESCHIEDENIS:-10000}"
 TELEGRAM_GESCHIEDENIS="${TELEGRAM_GESCHIEDENIS:-2000}"
 # WhatsApp-statussen van je contacten tonen (kamer "WhatsApp Status").
-# Plaatsen blijft uit; dat komt via de eigen app.
 WHATSAPP_STATUS_BEKIJKEN="${WHATSAPP_STATUS_BEKIJKEN:-ja}"
+# Je eigen status plaatsen: wat je in die kamer stuurt, wordt je status op
+# WhatsApp. De QuitChat-app doet dat met de knop "Status plaatsen" en toont
+# de kamer niet als gewone chat.
+WHATSAPP_STATUS_PLAATSEN="${WHATSAPP_STATUS_PLAATSEN:-ja}"
 
 BRIDGES="${BRIDGES_DIR:-/srv/brug/data/muxbee/bridges}"
 KOPIE_MAP="${KOPIE_MAP:-/srv/brug/backups/handmatig}"
@@ -159,7 +162,12 @@ if [[ -f "$BRIDGES/whatsapp/registration.yaml" ]]; then
   fi
   if [[ "$WHATSAPP_STATUS_BEKIJKEN" == ja ]] && grep -q '^    enable_status_broadcast: false$' "$WERK/wa.yaml"; then
     sed -i 's/^    enable_status_broadcast: false$/    enable_status_broadcast: true/' "$WERK/wa.yaml"
-    veranderd whatsapp "statussen van contacten bekijken aan (plaatsen blijft uit)"
+    veranderd whatsapp "statussen van contacten bekijken aan"
+    wa_veranderd=ja
+  fi
+  if [[ "$WHATSAPP_STATUS_PLAATSEN" == ja ]] && grep -q '^    disable_status_broadcast_send: true$' "$WERK/wa.yaml"; then
+    sed -i 's/^    disable_status_broadcast_send: true$/    disable_status_broadcast_send: false/' "$WERK/wa.yaml"
+    veranderd whatsapp "eigen status plaatsen aan"
     wa_veranderd=ja
   fi
   if [[ "$wa_veranderd" == ja ]]; then
