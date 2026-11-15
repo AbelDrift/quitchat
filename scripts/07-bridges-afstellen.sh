@@ -28,6 +28,8 @@ WHATSAPP_STATUS_BEKIJKEN="${WHATSAPP_STATUS_BEKIJKEN:-ja}"
 # WhatsApp. De QuitChat-app doet dat met de knop "Status plaatsen" en toont
 # de kamer niet als gewone chat.
 WHATSAPP_STATUS_PLAATSEN="${WHATSAPP_STATUS_PLAATSEN:-ja}"
+# Namen zonder " (WA)" enz. erachter.
+NAAM_ZONDER_KANAAL="${NAAM_ZONDER_KANAAL:-ja}"
 
 BRIDGES="${BRIDGES_DIR:-/srv/brug/data/muxbee/bridges}"
 KOPIE_MAP="${KOPIE_MAP:-/srv/brug/backups/handmatig}"
@@ -212,6 +214,25 @@ if [[ -f "$BRIDGES/telegram/registration.yaml" ]]; then
   else
     echo "  staat al goed"
   fi
+fi
+
+# Geen " (WA)", " (Signal)" of " (Discord)" achter namen: QuitChat toont het
+# kanaal met een logo. Bestaande namen passen zich aan bij de volgende
+# profielwijziging of synchronisatie van dat contact.
+if [[ "$NAAM_ZONDER_KANAAL" == ja ]]; then
+  for b in whatsapp signal discord; do
+    [[ -d "$BRIDGES/$b" ]] || continue
+    echo "==> Namen ($b)"
+    config_lezen "$b" "$WERK/naam.yaml"
+    patroon="^( +displayname_template: '.*\}\}) \((WA|Signal|Discord)\)'$"
+    if grep -qE "$patroon" "$WERK/naam.yaml"; then
+      sed -i -E "s/$patroon/\1'/" "$WERK/naam.yaml"
+      veranderd "$b" "geen kanaalnaam meer achter namen"
+      if [[ "$DROOG" == nee ]]; then config_schrijven "$b" "$WERK/naam.yaml"; herstarten "$b"; fi
+    else
+      echo "  staat al goed"
+    fi
+  done
 fi
 
 # Zichzelf installeren, zodat "brug up" dit na elke start kan draaien
